@@ -11,6 +11,7 @@ import Progress from "./Progress.jsx";
 import FinishScreen from "./FinishScreen.jsx";
 import Footer from "./Footer.jsx";
 import Timer from "./Timer.jsx";
+import HighScore from "./HighScore.jsx";
 
 const SECOND_PER_QUESTION = 30;
 const data = [
@@ -154,6 +155,8 @@ const data = [
   },
 ];
 
+const localHighScore = localStorage.getItem("highscore");
+
 const initialState = {
   questions: [],
   //'loading','error','ready','active','finish'
@@ -161,14 +164,20 @@ const initialState = {
   index: 0,
   answer: null,
   points: 0,
-  highscore: 0,
+  highscore: localHighScore || 0,
   secondRemaining: null,
 };
 
 function reducer(state, action) {
   switch (action.type) {
     case "dataReceived":
-      return { ...state, questions: action.payload, status: "ready" };
+      return {
+        ...state,
+        questions: action.payload,
+        status: "ready",
+        highscore:
+          localHighScore > state.highscore ? localHighScore : state.highscore,
+      };
     case "dataFailed":
       return { ...state, status: "error" };
     case "start":
@@ -191,6 +200,8 @@ function reducer(state, action) {
     case "nextQuestion":
       return { ...state, index: state.index + 1, answer: null };
     case "finish":
+      if (state.points > state.highscore)
+        localStorage.setItem("highscore", JSON.stringify(state.points));
       return {
         ...state,
         status: "finished",
@@ -207,7 +218,13 @@ function reducer(state, action) {
         secondRemaining: 10,
       };
 
+    case "resetHighscore":
+      localStorage.setItem("highscore", JSON.stringify(0));
+      return { ...state, highscore: 0 };
+
     case "tick":
+      if (state.points > state.highscore)
+        localStorage.setItem("highscore", JSON.stringify(state.points));
       return {
         ...state,
         secondRemaining: state.secondRemaining - 1,
@@ -235,12 +252,12 @@ export default function App() {
   );
 
   useEffect(function () {
-    fetch("http://localhost:8000/questions")
-      .then((res) => res.json())
-      .then((data) => dispatch({ type: "dataReceived", payload: data }))
-      .catch((err) => dispatch({ type: "dataFailed" }));
+    // fetch("http://localhost:8000/questions")
+    //   .then((res) => res.json())
+    //   .then((data) => dispatch({ type: "dataReceived", payload: data }))
+    //   .catch((err) => dispatch({ type: "dataFailed" }));
 
-    // dispatch({ type: "dataReceived", payload: data });
+    dispatch({ type: "dataReceived", payload: data });
   }, []);
 
   return (
@@ -250,7 +267,10 @@ export default function App() {
         {status === "loading" && <Loader />}
         {status === "error" && <Error />}
         {status === "ready" && (
-          <StartScreen numQuestions={numQuestion} dispatch={dispatch} />
+          <>
+            <StartScreen numQuestions={numQuestion} dispatch={dispatch} />
+            <HighScore highscore={highscore} dispatch={dispatch} />
+          </>
         )}
         {status === "active" && (
           <>

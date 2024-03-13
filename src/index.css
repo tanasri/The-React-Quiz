@@ -257,3 +257,11 @@ progress {
   font-size: inherit;
   padding: 0.8rem;
 }
+
+.highscore {
+  margin-top: 20px;
+}
+
+.highscore-number {
+  color: #ffa94d;
+}
