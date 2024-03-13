@@ -1,4 +1,5 @@
 # The React Quiz
+<a href="https://reactquiz-z.netlify.app/">try "The React Quiz"!<a/>
 
 "The React Quiz" project mainly focus on practicing useReducer Hook
 
